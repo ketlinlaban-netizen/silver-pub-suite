@@ -66,8 +66,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const path = useRouterState({ select: (s) => s.location.pathname });
 
+  const staffName = profile?.full_name?.trim() || displayName(profile?.email);
   const initials =
-    (profile?.full_name || profile?.email || "SP")
+    staffName
       .split(" ")
       .map((w) => w[0])
       .slice(0, 2)
