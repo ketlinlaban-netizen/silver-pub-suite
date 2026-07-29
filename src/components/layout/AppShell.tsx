@@ -24,6 +24,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { displayName } from "@/lib/format";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; managerOnly?: boolean };
 
