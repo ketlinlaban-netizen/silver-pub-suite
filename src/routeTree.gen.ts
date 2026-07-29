@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTabsRouteImport } from './routes/_authenticated/tabs'
+import { Route as AuthenticatedSuppliersRouteImport } from './routes/_authenticated/suppliers'
 import { Route as AuthenticatedShiftsRouteImport } from './routes/_authenticated/shifts'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
@@ -37,6 +38,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedTabsRoute = AuthenticatedTabsRouteImport.update({
   id: '/tabs',
   path: '/tabs',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSuppliersRoute = AuthenticatedSuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedShiftsRoute = AuthenticatedShiftsRouteImport.update({
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/pos': typeof AuthenticatedPosRoute
   '/products': typeof AuthenticatedProductsRoute
   '/shifts': typeof AuthenticatedShiftsRoute
+  '/suppliers': typeof AuthenticatedSuppliersRoute
   '/tabs': typeof AuthenticatedTabsRoute
 }
 export interface FileRoutesByTo {
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/pos': typeof AuthenticatedPosRoute
   '/products': typeof AuthenticatedProductsRoute
   '/shifts': typeof AuthenticatedShiftsRoute
+  '/suppliers': typeof AuthenticatedSuppliersRoute
   '/tabs': typeof AuthenticatedTabsRoute
 }
 export interface FileRoutesById {
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_authenticated/pos': typeof AuthenticatedPosRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/shifts': typeof AuthenticatedShiftsRoute
+  '/_authenticated/suppliers': typeof AuthenticatedSuppliersRoute
   '/_authenticated/tabs': typeof AuthenticatedTabsRoute
 }
 export interface FileRouteTypes {
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/pos'
     | '/products'
     | '/shifts'
+    | '/suppliers'
     | '/tabs'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/pos'
     | '/products'
     | '/shifts'
+    | '/suppliers'
     | '/tabs'
   id:
     | '__root__'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pos'
     | '/_authenticated/products'
     | '/_authenticated/shifts'
+    | '/_authenticated/suppliers'
     | '/_authenticated/tabs'
   fileRoutesById: FileRoutesById
 }
@@ -176,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/tabs'
       fullPath: '/tabs'
       preLoaderRoute: typeof AuthenticatedTabsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/suppliers': {
+      id: '/_authenticated/suppliers'
+      path: '/suppliers'
+      fullPath: '/suppliers'
+      preLoaderRoute: typeof AuthenticatedSuppliersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/shifts': {
@@ -230,6 +249,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedShiftsRoute: typeof AuthenticatedShiftsRoute
+  AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
   AuthenticatedTabsRoute: typeof AuthenticatedTabsRoute
 }
 
@@ -240,6 +260,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPosRoute: AuthenticatedPosRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedShiftsRoute: AuthenticatedShiftsRoute,
+  AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
   AuthenticatedTabsRoute: AuthenticatedTabsRoute,
 }
 
