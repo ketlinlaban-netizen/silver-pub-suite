@@ -65,7 +65,7 @@ function SettingsPage() {
     if (!isManager) return toast.error("Only managers can change settings");
     setSaving(true);
     const payload = {
-      business_name: form.business_name || null,
+      business_name: form.business_name || "Silver Pub",
       phone: form.phone || null,
       email: form.email || null,
       address: form.address || null,
