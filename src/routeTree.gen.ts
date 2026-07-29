@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTabsRouteImport } from './routes/_authenticated/tabs'
 import { Route as AuthenticatedSuppliersRouteImport } from './routes/_authenticated/suppliers'
+import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedShiftsRouteImport } from './routes/_authenticated/shifts'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPurchasesRouteImport } from './routes/_authenticated/purchases'
@@ -48,6 +49,11 @@ const AuthenticatedTabsRoute = AuthenticatedTabsRouteImport.update({
 const AuthenticatedSuppliersRoute = AuthenticatedSuppliersRouteImport.update({
   id: '/suppliers',
   path: '/suppliers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedShiftsRoute = AuthenticatedShiftsRouteImport.update({
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/purchases': typeof AuthenticatedPurchasesRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/shifts': typeof AuthenticatedShiftsRoute
+  '/staff': typeof AuthenticatedStaffRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/tabs': typeof AuthenticatedTabsRoute
 }
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/purchases': typeof AuthenticatedPurchasesRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/shifts': typeof AuthenticatedShiftsRoute
+  '/staff': typeof AuthenticatedStaffRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/tabs': typeof AuthenticatedTabsRoute
 }
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/_authenticated/purchases': typeof AuthenticatedPurchasesRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/shifts': typeof AuthenticatedShiftsRoute
+  '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/_authenticated/suppliers': typeof AuthenticatedSuppliersRoute
   '/_authenticated/tabs': typeof AuthenticatedTabsRoute
 }
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/purchases'
     | '/reports'
     | '/shifts'
+    | '/staff'
     | '/suppliers'
     | '/tabs'
   fileRoutesByTo: FileRoutesByTo
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/purchases'
     | '/reports'
     | '/shifts'
+    | '/staff'
     | '/suppliers'
     | '/tabs'
   id:
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/_authenticated/purchases'
     | '/_authenticated/reports'
     | '/_authenticated/shifts'
+    | '/_authenticated/staff'
     | '/_authenticated/suppliers'
     | '/_authenticated/tabs'
   fileRoutesById: FileRoutesById
@@ -255,6 +267,13 @@ declare module '@tanstack/react-router' {
       path: '/suppliers'
       fullPath: '/suppliers'
       preLoaderRoute: typeof AuthenticatedSuppliersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/staff': {
+      id: '/_authenticated/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof AuthenticatedStaffRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/shifts': {
@@ -349,6 +368,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPurchasesRoute: typeof AuthenticatedPurchasesRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedShiftsRoute: typeof AuthenticatedShiftsRoute
+  AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
   AuthenticatedTabsRoute: typeof AuthenticatedTabsRoute
 }
@@ -365,6 +385,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPurchasesRoute: AuthenticatedPurchasesRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedShiftsRoute: AuthenticatedShiftsRoute,
+  AuthenticatedStaffRoute: AuthenticatedStaffRoute,
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
   AuthenticatedTabsRoute: AuthenticatedTabsRoute,
 }
