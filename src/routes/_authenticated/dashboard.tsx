@@ -26,7 +26,7 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, StatCard, GlassPanel } from "@/components/ui/premium";
-import { money, num, daysAgo, startOfToday, timeOnly } from "@/lib/format";
+import { money, num, daysAgo, startOfToday, timeOnly, displayName } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -177,7 +177,7 @@ function Dashboard() {
 
   const cashierMap = new Map<string, number>();
   for (const s of data.sales)
-    cashierMap.set(s.cashier_name ?? "—", (cashierMap.get(s.cashier_name ?? "—") ?? 0) + Number(s.total));
+    cashierMap.set(displayName(s.cashier_name), (cashierMap.get(displayName(s.cashier_name)) ?? 0) + Number(s.total));
   const topCashiers = [...cashierMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   const lowStock = data.products.filter((p) => p.stock_quantity <= p.min_stock);
@@ -338,7 +338,7 @@ function Dashboard() {
           {data.sales.slice(-8).reverse().map((s) => (
             <div key={s.id} className="flex items-center justify-between rounded-xl bg-secondary/40 px-4 py-3 text-sm">
               <span className="text-muted-foreground">{timeOnly(s.created_at)}</span>
-              <span className="truncate px-3">{s.cashier_name ?? "—"}</span>
+              <span className="truncate px-3">{displayName(s.cashier_name)}</span>
               <span className="font-semibold tabular-nums text-primary">{money(s.total)}</span>
             </div>
           ))}

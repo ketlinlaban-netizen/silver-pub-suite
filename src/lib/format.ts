@@ -49,3 +49,9 @@ export const ROLE_LABELS: Record<string, string> = {
   supervisor: "Supervisor",
   owner: "Owner",
 };
+
+export const displayName = (v: string | null | undefined) => {
+  const s = (v ?? "").trim();
+  if (!s) return "Staff";
+  return s.includes("@") ? s.split("@")[0].replace(/[._-]+/g, " ") : s;
+};

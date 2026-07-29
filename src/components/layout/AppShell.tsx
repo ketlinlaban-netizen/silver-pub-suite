@@ -24,6 +24,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { displayName } from "@/lib/format";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; managerOnly?: boolean };
 
@@ -66,8 +67,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const path = useRouterState({ select: (s) => s.location.pathname });
 
+  const staffName = profile?.full_name?.trim() || displayName(profile?.email);
   const initials =
-    (profile?.full_name || profile?.email || "SP")
+    staffName
       .split(" ")
       .map((w) => w[0])
       .slice(0, 2)
@@ -145,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{profile?.full_name || "Staff"}</p>
+              <p className="truncate text-sm font-semibold capitalize">{staffName}</p>
               <p className="truncate text-xs capitalize text-muted-foreground">
                 {roles[0]?.replace("_", " ") || "staff"}
               </p>
