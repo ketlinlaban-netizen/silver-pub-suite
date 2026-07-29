@@ -147,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{profile?.full_name || "Staff"}</p>
+              <p className="truncate text-sm font-semibold capitalize">{staffName}</p>
               <p className="truncate text-xs capitalize text-muted-foreground">
                 {roles[0]?.replace("_", " ") || "staff"}
               </p>
