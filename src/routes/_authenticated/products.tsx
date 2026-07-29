@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { money } from "@/lib/format";
-import { logAudit, recordStockMovement } from "@/lib/pos";
+import { logAudit, applyStockMovement } from "@/lib/pos";
 
 export const Route = createFileRoute("/_authenticated/products")({
   head: () => ({
@@ -435,25 +435,23 @@ function StockInDialog({
     const q = Number(qty) || 0;
     if (q === 0) return toast.error("Enter a quantity");
     setBusy(true);
-    const newQty = Number(product.stock_quantity) + q;
-    const { error } = await supabase.from("products").update({ stock_quantity: newQty }).eq("id", product.id);
-    if (!error) {
-      await recordStockMovement({
+    try {
+      const newQty = await applyStockMovement({
         productId: product.id,
         productName: product.name,
-        type: q > 0 ? "purchase" : "adjustment",
-        quantity: q,
-        balanceAfter: newQty,
-        userId,
-        note: "Manual stock adjustment",
+        delta: q,
+        type: q > 0 ? "receive" : "adjustment",
+        notes: "Manual stock adjustment",
       });
       await logAudit("stock.adjusted", "products", product.id, { quantity: q });
+      toast.success(`${product.name} stock is now ${newQty} ${product.unit}`);
+      onClose();
+      onDone();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Stock update failed");
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success(`${product.name} stock is now ${newQty} ${product.unit}`);
-    onClose();
-    onDone();
   };
 
   return (
