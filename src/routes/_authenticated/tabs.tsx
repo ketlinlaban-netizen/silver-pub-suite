@@ -151,7 +151,7 @@ function TabsPage() {
         <StatCard index={2} label="Billed value" value={tabs.reduce((s, t) => s + Number(t.total_amount), 0)} format={money} tone="info" />
       </div>
 
-      <Tabs value={status} onValueChange={setStatus}>
+      <Tabs value={status} onValueChange={(v) => setStatus(v as "open" | "paid")}>
         <TabsList>
           <TabsTrigger value="open">Open</TabsTrigger>
           <TabsTrigger value="paid">Archived / Paid</TabsTrigger>
