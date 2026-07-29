@@ -62,7 +62,7 @@ function TabsPage() {
   const { user, profile } = useAuth();
   const { data: shift } = useActiveShift();
   const qc = useQueryClient();
-  const [status, setStatus] = useState("open");
+  const [status, setStatus] = useState<"open" | "paid">("open");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<TabRow | null>(null);
   const [payOpen, setPayOpen] = useState(false);
