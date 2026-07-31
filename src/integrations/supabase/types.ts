@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_pins: {
+        Row: {
+          created_at: string | null
+          id: string
+          pin: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          pin: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          pin?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
