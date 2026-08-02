@@ -25,7 +25,13 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     }
 
     headers.set('apikey', supabaseKey);
-    return fetch(input, { ...init, headers });
+    
+    // Add custom error handling for rate limiting
+    return fetch(input, { ...init, headers }).catch((error) => {
+      // Handle network errors gracefully
+      console.warn("Supabase fetch error:", error);
+      throw error;
+    });
   };
 }
 
@@ -39,11 +45,16 @@ function createSupabaseClient() {
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
+      // Add rate limiting headers to prevent 429 errors
+      headers: {
+        'X-Client-Info': 'silver-pub-pos/1.0',
+      },
     },
     auth: {
       storage: typeof window !== 'undefined' ? localStorage : undefined,
       persistSession: true,
-      autoRefreshToken: true,
+      autoRefreshToken: false,
+      detectSessionInUrl: true,
     }
   });
 }

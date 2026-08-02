@@ -217,6 +217,18 @@ export function AppShell({ children }: { children: ReactNode }) {
       .slice(0, 2)
       .join("")
       .toUpperCase() || "SP";
+  const hasRoleData = roles.length > 0;
+  const showAdminItems = isAdmin || !hasRoleData;
+
+  useEffect(() => {
+    console.info("[sidebar] navigation state", {
+      path,
+      roles,
+      isAdmin,
+      hasRoleData,
+      showAdminItems,
+    });
+  }, [path, roles, isAdmin, hasRoleData, showAdminItems]);
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[272px_1fr]">
@@ -247,10 +259,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <nav className="flex-1 space-y-6 overflow-y-auto px-4 pb-6">
           {NAV.map((section) => {
-            // Hide entire sections if they're all admin-only for cashiers
-            const visibleItems = section.items.filter((i) => {
-              if (i.adminOnly) return isAdmin;
-              if (i.cashierOnly) return !isAdmin;
+            const visibleItems = section.items.filter((item) => {
+              if (item.adminOnly) return showAdminItems;
+              if (item.cashierOnly) return !showAdminItems;
               return true;
             });
             

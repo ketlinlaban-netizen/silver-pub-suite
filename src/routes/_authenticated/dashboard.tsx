@@ -1,5 +1,6 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import {
   Banknote,
   Smartphone,
@@ -9,6 +10,8 @@ import {
   Wallet,
   CircleDollarSign,
   Beer,
+  Lock,
+  AlertCircle,
 } from "lucide-react";
 import {
   Area,
@@ -26,7 +29,9 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { requireAdmin } from "@/lib/auth-guards";
+import { useAuth } from "@/hooks/useAuth";
 import { PageHeader, StatCard, GlassPanel } from "@/components/ui/premium";
+import { Button } from "@/components/ui/button";
 import { money, num, daysAgo, startOfToday, timeOnly, displayName } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -61,11 +66,19 @@ type SaleRow = {
 };
 
 function Dashboard() {
-  const { data, isLoading } = useQuery({
+  const { sessionExpired, authError } = useAuth();
+  const [lastData, setLastData] = useState<DashboardData | null>(null);
+
+  const { data, isLoading, isError } = useQuery<DashboardData>({
     queryKey: ["dashboard"],
     refetchInterval: 60_000,
     staleTime: 30_000,
     gcTime: 5 * 60_000,
+    retry: (failureCount, error: any) => {
+      console.warn("Dashboard query failed", { attempt: failureCount, error: error?.message || error });
+      const isAuthError = error?.status === 401 || error?.status === 429;
+      return isAuthError && failureCount < 3;
+    },
     queryFn: async () => {
       const since = daysAgo(29).toISOString();
       const [sales, items, products, expenses, tabs, purchases] = await Promise.all([
@@ -74,39 +87,75 @@ function Dashboard() {
           .select("id,total,profit,cash_amount,mpesa_amount,cashier_name,created_at")
           .gte("created_at", since)
           .eq("status", "paid")
-          .order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false })
+          .limit(500),
         supabase
           .from("sale_items")
           .select("product_name,quantity,line_total,created_at")
-          .gte("created_at", since),
+          .gte("created_at", since)
+          .limit(2000),
         supabase.from("products").select("id,name,stock_quantity,cost_price,min_stock").eq("status", "active"),
-        supabase.from("expenses").select("amount,created_at").gte("created_at", since),
+        supabase.from("expenses").select("amount,created_at").gte("created_at", since).limit(300),
         supabase.from("tabs").select("id,balance").eq("status", "open"),
-        supabase.from("purchases").select("total,created_at").gte("created_at", since),
+        supabase.from("purchases").select("total,created_at").gte("created_at", since).limit(300),
       ]);
-      return {
+
+      const result: DashboardData = {
         sales: (sales.data ?? []) as SaleRow[],
-        items: (items.data ?? []) as {
-          product_name: string;
-          quantity: number;
-          line_total: number;
-          created_at: string;
-        }[],
-        products: (products.data ?? []) as {
-          id: string;
-          name: string;
-          stock_quantity: number;
-          cost_price: number;
-          min_stock: number;
-        }[],
-        expenses: (expenses.data ?? []) as { amount: number; created_at: string }[],
-        openTabs: (tabs.data ?? []) as { id: string; balance: number }[],
-        purchases: (purchases.data ?? []) as { total: number }[],
+        items: (items.data ?? []) as DashboardData["items"],
+        products: (products.data ?? []) as DashboardData["products"],
+        expenses: (expenses.data ?? []) as DashboardData["expenses"],
+        openTabs: (tabs.data ?? []) as DashboardData["openTabs"],
+        purchases: (purchases.data ?? []) as DashboardData["purchases"],
       };
+
+      if (sales.data && items.data && products.data) {
+        setLastData(result);
+      }
+
+      return result;
     },
   });
 
-  if (isLoading || !data) {
+  useEffect(() => {
+    if (data) {
+      setLastData(data);
+    }
+  }, [data]);
+
+  const displayData = useMemo(() => data ?? lastData, [data, lastData]);
+
+  if (sessionExpired) {
+    return (
+      <div className="glass-card mx-auto mt-10 max-w-lg p-10 text-center">
+        <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl border border-destructive/40 text-destructive">
+          <Lock className="size-6" />
+        </div>
+        <h2 className="font-display text-2xl font-semibold">Session Expired</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Your session has expired. Please log in again.</p>
+        <Link to="/auth">
+          <Button className="mt-6 rounded-xl">Sign in</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  if (authError && !displayData) {
+    return (
+      <div className="glass-card mx-auto mt-10 max-w-lg p-10 text-center">
+        <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl border border-destructive/40 text-destructive">
+          <AlertCircle className="size-6" />
+        </div>
+        <h2 className="font-display text-2xl font-semibold">Authentication Error</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{authError}</p>
+        <Button className="mt-6 rounded-xl" onClick={() => window.location.reload()}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if ((isLoading && !displayData) || (!displayData && !isError)) {
     return (
       <div className="space-y-6">
         <PageHeader title="Executive Dashboard" subtitle="Loading live business metrics…" />
