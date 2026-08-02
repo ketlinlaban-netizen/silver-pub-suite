@@ -82,7 +82,7 @@ function AuthPage() {
   return (
     <div className="grid min-h-screen place-items-center px-6 py-16">
       <div className="w-full max-w-md">
-        {loading ? (
+        {loading && session ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
