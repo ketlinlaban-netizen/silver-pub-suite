@@ -1,12 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { requireAdmin } from "@/lib/auth-guards";
 import { PageHeader, GlassPanel, EmptyState } from "@/components/ui/premium";
 import { Input } from "@/components/ui/input";
 import { dateTime, displayName, daysAgo } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/audit")({
+  beforeLoad: requireAdmin,
   head: () => ({
     meta: [
       { title: "Audit Logs — Silver Pub POS" },
@@ -37,8 +39,7 @@ function AuditPage() {
         .from("audit_logs")
         .select("id,actor_name,action,entity,entity_id,created_at")
         .gte("created_at", daysAgo(29).toISOString())
-        .order("created_at", { ascending: false })
-        .limit(300);
+        .order("created_at", { ascending: false });
       return (data ?? []) as Log[];
     },
   });

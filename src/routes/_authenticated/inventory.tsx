@@ -1,13 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Boxes, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { requireAdmin } from "@/lib/auth-guards";
 import { PageHeader, GlassPanel, EmptyState, StatCard } from "@/components/ui/premium";
 import { Input } from "@/components/ui/input";
 import { money, num, dateTime, daysAgo } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/inventory")({
+  beforeLoad: requireAdmin,
   head: () => ({
     meta: [
       { title: "Inventory — Silver Pub POS" },
@@ -52,8 +54,7 @@ function InventoryPage() {
           .from("inventory_movements")
           .select("id,product_name,type,quantity,balance_after,reference,created_at")
           .gte("created_at", daysAgo(13).toISOString())
-          .order("created_at", { ascending: false })
-          .limit(200),
+          .order("created_at", { ascending: false }),
       ]);
       return {
         products: (products ?? []) as Product[],

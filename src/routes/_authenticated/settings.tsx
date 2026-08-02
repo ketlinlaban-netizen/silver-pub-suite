@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { requireAdmin } from "@/lib/auth-guards";
 import { PageHeader, GlassPanel } from "@/components/ui/premium";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/settings")({
+  beforeLoad: requireAdmin,
   head: () => ({
     meta: [
       { title: "Settings — Silver Pub POS" },
@@ -45,9 +47,11 @@ type Settings = {
 
 function SettingsPage() {
   const qc = useQueryClient();
-  const { isManager } = useAuth();
+  const { isManager, user } = useAuth();
   const [form, setForm] = useState<Partial<Settings>>({});
   const [saving, setSaving] = useState(false);
+  const [pinForm, setPinForm] = useState({ current: "", new: "", confirm: "" });
+  const [savingPin, setSavingPin] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["business-settings"],
@@ -83,6 +87,35 @@ function SettingsPage() {
     if (error) return toast.error(error.message);
     toast.success("Settings saved");
     void qc.invalidateQueries({ queryKey: ["business-settings"] });
+  };
+
+  const savePin = async () => {
+    if (!pinForm.new.trim()) return toast.error("Enter new PIN");
+    if (pinForm.new.length !== 4 || !/^\d+$/.test(pinForm.new))
+      return toast.error("PIN must be exactly 4 digits");
+    if (pinForm.new !== pinForm.confirm) return toast.error("PINs do not match");
+
+    setSavingPin(true);
+    try {
+      const { error } = await supabase
+        .from("admin_pins")
+        .upsert(
+          {
+            user_id: user?.id,
+            pin: pinForm.new,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" }
+        );
+
+      if (error) throw error;
+      toast.success("Admin PIN updated");
+      setPinForm({ current: "", new: "", confirm: "" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update PIN");
+    } finally {
+      setSavingPin(false);
+    }
   };
 
   const field = (key: keyof Settings, label: string, type = "text") => (
@@ -165,6 +198,46 @@ function SettingsPage() {
                   onChange={(e) => setForm({ ...form, receipt_footer: e.target.value })}
                 />
               </div>
+            </div>
+          </GlassPanel>
+
+          <GlassPanel>
+            <p className="mb-4 font-display text-lg font-semibold">Admin PIN (4 digits)</p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="pin-new">New PIN</Label>
+                <Input
+                  id="pin-new"
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="0000"
+                  value={pinForm.new}
+                  onChange={(e) => setPinForm({ ...pinForm, new: e.target.value.replace(/\D/g, "") })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pin-confirm">Confirm PIN</Label>
+                <Input
+                  id="pin-confirm"
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="0000"
+                  value={pinForm.confirm}
+                  onChange={(e) => setPinForm({ ...pinForm, confirm: e.target.value.replace(/\D/g, "") })}
+                />
+              </div>
+              <Button
+                onClick={() => void savePin()}
+                disabled={savingPin || !pinForm.new}
+                className="w-full rounded-xl"
+              >
+                {savingPin ? "Updating..." : "Update PIN"}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                You will need to re-enter this PIN after each admin login
+              </p>
             </div>
           </GlassPanel>
         </div>

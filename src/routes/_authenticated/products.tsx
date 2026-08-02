@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -23,6 +23,18 @@ import { money } from "@/lib/format";
 import { logAudit, applyStockMovement } from "@/lib/pos";
 
 export const Route = createFileRoute("/_authenticated/products")({
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) throw redirect({ to: "/auth" });
+    
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", data.user.id);
+    
+    const isAdmin = roles?.some((r) => ["administrator", "owner"].includes(r.role));
+    if (!isAdmin) throw redirect({ to: "/dashboard" });
+  },
   head: () => ({
     meta: [
       { title: "Products & Stock — Silver Pub POS" },

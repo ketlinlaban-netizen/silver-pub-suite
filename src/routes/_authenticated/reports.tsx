@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -14,11 +14,13 @@ import {
 } from "recharts";
 import { BarChart3, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { requireAdmin } from "@/lib/auth-guards";
 import { PageHeader, GlassPanel, EmptyState, StatCard } from "@/components/ui/premium";
 import { Button } from "@/components/ui/button";
 import { money, num, shortDate, daysAgo, displayName } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/reports")({
+  beforeLoad: requireAdmin,
   head: () => ({
     meta: [
       { title: "Reports — Silver Pub POS" },

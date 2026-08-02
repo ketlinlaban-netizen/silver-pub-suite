@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   Banknote,
@@ -25,11 +25,13 @@ import {
   YAxis,
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { requireAdmin } from "@/lib/auth-guards";
 import { PageHeader, StatCard, GlassPanel } from "@/components/ui/premium";
 import { money, num, daysAgo, startOfToday, timeOnly, displayName } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  beforeLoad: requireAdmin,
   head: () => ({
     meta: [
       { title: "Executive Dashboard — Silver Pub POS" },
@@ -61,7 +63,9 @@ type SaleRow = {
 function Dashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
     queryFn: async () => {
       const since = daysAgo(29).toISOString();
       const [sales, items, products, expenses, tabs, purchases] = await Promise.all([
@@ -69,14 +73,15 @@ function Dashboard() {
           .from("sales")
           .select("id,total,profit,cash_amount,mpesa_amount,cashier_name,created_at")
           .gte("created_at", since)
-          .eq("status", "paid"),
+          .eq("status", "paid")
+          .order("created_at", { ascending: false }),
         supabase
           .from("sale_items")
           .select("product_name,quantity,line_total,created_at")
           .gte("created_at", since),
-        supabase.from("products").select("id,name,stock_quantity,cost_price,min_stock"),
+        supabase.from("products").select("id,name,stock_quantity,cost_price,min_stock").eq("status", "active"),
         supabase.from("expenses").select("amount,created_at").gte("created_at", since),
-        supabase.from("tabs").select("id,balance,status").eq("status", "open"),
+        supabase.from("tabs").select("id,balance").eq("status", "open"),
         supabase.from("purchases").select("total,created_at").gte("created_at", since),
       ]);
       return {

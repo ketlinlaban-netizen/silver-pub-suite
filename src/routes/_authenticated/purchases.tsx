@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { requireAdmin } from "@/lib/auth-guards";
 import { PageHeader, GlassPanel, EmptyState, StatCard } from "@/components/ui/premium";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import {
 import { money, dateTime, num } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/purchases")({
+  beforeLoad: requireAdmin,
   head: () => ({
     meta: [
       { title: "Purchases — Silver Pub POS" },
@@ -67,7 +69,7 @@ function PurchasesPage() {
     queryKey: ["purchases"],
     queryFn: async () => {
       const [{ data: purchases }, { data: suppliers }] = await Promise.all([
-        supabase.from("purchases").select("*").order("created_at", { ascending: false }).limit(200),
+        supabase.from("purchases").select("*").order("created_at", { ascending: false }),
         supabase.from("suppliers").select("id,company_name").order("company_name"),
       ]);
       return {

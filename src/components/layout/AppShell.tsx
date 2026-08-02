@@ -1,5 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect, type ReactNode } from "react";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -26,13 +26,154 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { displayName } from "@/lib/format";
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; managerOnly?: boolean };
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean; cashierOnly?: boolean };
+
+function RealtimeClock() {
+  const [time, setTime] = useState<{ hours: number; minutes: number; seconds: number }>({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setTime({
+        hours: now.getHours() % 12,
+        minutes: now.getMinutes(),
+        seconds: now.getSeconds(),
+      });
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Calculate rotation angles
+  const secondsRotation = (time.seconds * 6);
+  const minutesRotation = (time.minutes * 6) + (time.seconds * 0.1);
+  const hoursRotation = (time.hours * 30) + (time.minutes * 0.5);
+
+  // Hide on desktop, only show on mobile
+  if (!isMobile) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-6">
+      {/* Analog Clock - No Background */}
+      <div className="relative size-32" style={{
+        perspective: "1000px",
+      }}>
+        {/* Center dot */}
+        <div className="absolute top-1/2 left-1/2 size-3 -translate-x-1/2 -translate-y-1/2 bg-slate-900 rounded-full z-20 shadow-lg" />
+        
+        {/* Hour markers (1-12) */}
+        {[...Array(12)].map((_, i) => {
+          const isLarge = i % 3 === 0;
+          return (
+            <div
+              key={i}
+              className="absolute font-bold"
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transform: `rotate(${i * 30}deg)`,
+              }}
+            >
+              <div
+                style={{
+                  transform: `rotate(-${i * 30}deg) translateY(-48px)`,
+                  fontSize: isLarge ? "20px" : "16px",
+                  color: "#0f172a",
+                  fontWeight: "900",
+                  textShadow: "0 1px 2px rgba(255,255,255,0.5)",
+                }}
+              >
+                {i === 0 ? "12" : i}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Hour hand */}
+        <div
+          className="absolute top-1/2 left-1/2 origin-left bg-slate-900 shadow-lg rounded-full"
+          style={{
+            width: "6px",
+            height: "40px",
+            marginLeft: "3px",
+            marginTop: "-20px",
+            transform: `rotate(${hoursRotation}deg)`,
+            transition: "transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+          }}
+        />
+
+        {/* Minute hand */}
+        <div
+          className="absolute top-1/2 left-1/2 origin-left bg-slate-800 shadow-lg rounded-full"
+          style={{
+            width: "5px",
+            height: "52px",
+            marginLeft: "2.5px",
+            marginTop: "-26px",
+            transform: `rotate(${minutesRotation}deg)`,
+            transition: "transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+            zIndex: 10,
+          }}
+        />
+
+        {/* Second hand */}
+        <div
+          className="absolute top-1/2 left-1/2 origin-left rounded-full"
+          style={{
+            width: "2px",
+            height: "58px",
+            marginLeft: "1px",
+            marginTop: "-29px",
+            background: "rgb(220, 38, 38)",
+            transform: `rotate(${secondsRotation}deg)`,
+            transition: "transform 0.05s linear",
+            boxShadow: "0 1px 4px rgba(220, 38, 38, 0.5)",
+            zIndex: 5,
+          }}
+        />
+      </div>
+
+      {/* Digital time display */}
+      <div className="font-mono text-2xl font-bold text-slate-900">
+        {String(time.hours || 12).padStart(2, "0")}:
+        {String(time.minutes).padStart(2, "0")}:
+        {String(time.seconds).padStart(2, "0")}
+      </div>
+    </div>
+  );
+}
 
 const NAV: { group: string; items: NavItem[] }[] = [
   {
     group: "Operations",
     items: [
-      { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: true },
       { to: "/pos", label: "Cashier POS", icon: ShoppingCart },
       { to: "/tabs", label: "Running Bills", icon: ReceiptText },
       { to: "/customers", label: "Customers", icon: Users },
@@ -43,27 +184,28 @@ const NAV: { group: string; items: NavItem[] }[] = [
   {
     group: "Stock",
     items: [
-      { to: "/products", label: "Products", icon: Package },
-      { to: "/categories", label: "Categories", icon: Tags },
-      { to: "/inventory", label: "Inventory", icon: Boxes },
-      { to: "/purchases", label: "Purchases", icon: ClipboardList },
-      { to: "/suppliers", label: "Suppliers", icon: Truck },
+      { to: "/products", label: "Products", icon: Package, adminOnly: true },
+      { to: "/categories", label: "Categories", icon: Tags, adminOnly: true },
+      { to: "/inventory", label: "Inventory", icon: Boxes, adminOnly: true },
+      { to: "/purchases", label: "Purchases", icon: ClipboardList, adminOnly: true },
+      { to: "/suppliers", label: "Suppliers", icon: Truck, adminOnly: true },
     ],
   },
   {
     group: "Business",
     items: [
-      { to: "/expenses", label: "Expenses", icon: Wallet },
-      { to: "/reports", label: "Reports", icon: BarChart3 },
-      { to: "/staff", label: "Staff & Roles", icon: UserCog, managerOnly: true },
-      { to: "/audit", label: "Audit Logs", icon: ScrollText },
-      { to: "/settings", label: "Settings", icon: SettingsIcon },
+      { to: "/expenses", label: "Expenses", icon: Wallet, adminOnly: true },
+      { to: "/reports", label: "Reports", icon: BarChart3, adminOnly: true },
+      { to: "/staff", label: "Staff & Roles", icon: UserCog, adminOnly: true },
+      { to: "/audit", label: "Audit Logs", icon: ScrollText, adminOnly: true },
+      { to: "/settings", label: "Settings", icon: SettingsIcon, adminOnly: true },
     ],
   },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { profile, roles, signOut, isManager } = useAuth();
+  const navigate = useNavigate();
+  const { profile, roles, signOut, isManager, isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
   const path = useRouterState({ select: (s) => s.location.pathname });
 
@@ -104,15 +246,23 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex-1 space-y-6 overflow-y-auto px-4 pb-6">
-          {NAV.map((section) => (
-            <div key={section.group}>
-              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                {section.group}
-              </p>
-              <div className="space-y-1">
-                {section.items
-                  .filter((i) => !i.managerOnly || isManager)
-                  .map((item) => {
+          {NAV.map((section) => {
+            // Hide entire sections if they're all admin-only for cashiers
+            const visibleItems = section.items.filter((i) => {
+              if (i.adminOnly) return isAdmin;
+              if (i.cashierOnly) return !isAdmin;
+              return true;
+            });
+            
+            if (visibleItems.length === 0) return null;
+            
+            return (
+              <div key={section.group}>
+                <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                  {section.group}
+                </p>
+                <div className="space-y-1">
+                  {visibleItems.map((item) => {
                     const active = path.startsWith(item.to);
                     return (
                       <Link
@@ -136,26 +286,30 @@ export function AppShell({ children }: { children: ReactNode }) {
                       </Link>
                     );
                   })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </nav>
 
         <div className="border-t border-sidebar-border p-4">
-          <div className="flex items-center gap-3 rounded-xl bg-sidebar-accent/50 p-3">
+          <button 
+            onClick={() => navigate({ to: "/account" })}
+            className="w-full flex items-center gap-3 rounded-xl bg-sidebar-accent/50 p-3 transition-all hover:bg-sidebar-accent"
+          >
             <div className="grid size-10 shrink-0 place-items-center rounded-full border border-primary/40 text-sm font-semibold text-primary">
               {initials}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 text-left">
               <p className="truncate text-sm font-semibold capitalize">{staffName}</p>
               <p className="truncate text-xs capitalize text-muted-foreground">
                 {roles[0]?.replace("_", " ") || "staff"}
               </p>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => void signOut()} aria-label="Sign out">
+            <Button variant="ghost" size="icon" onClick={async (e) => { e.stopPropagation(); await signOut(); await navigate({ to: "/auth" }); }} aria-label="Sign out">
               <LogOut className="size-4" />
             </Button>
-          </div>
+          </button>
         </div>
       </aside>
 
@@ -172,14 +326,17 @@ export function AppShell({ children }: { children: ReactNode }) {
           <button className="lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
             <Menu className="size-5" />
           </button>
-          <p className="text-sm text-muted-foreground">
-            {new Date().toLocaleDateString("en-KE", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              {new Date().toLocaleDateString("en-KE", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
+            <RealtimeClock />
+          </div>
           <div className="ml-auto flex items-center gap-2">
             <Link to="/pos">
               <Button size="sm" className="rounded-full">

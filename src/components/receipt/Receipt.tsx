@@ -52,7 +52,7 @@ export function Receipt({ data }: { data: ReceiptData }) {
 
       {data.items.map((it, i) => (
         <div key={i} className="mb-1">
-          <p className="font-bold uppercase">{it.name}</p>
+          <p className="font-bold uppercase break-words">{it.name}</p>
           <div className="flex justify-between">
             <span>
               {it.quantity} x {money(it.unitPrice)}
@@ -93,7 +93,6 @@ export function Receipt({ data }: { data: ReceiptData }) {
         <p className="text-center text-[10px] font-bold uppercase">{data.copyLabel}</p>
       )}
       <p className="mt-2 text-center">{b?.receipt_footer ?? "Thank you!"}</p>
-      <p className="mt-1 text-center text-[10px]">Powered by Silver Pub POS</p>
     </div>
   );
 }
@@ -101,8 +100,8 @@ export function Receipt({ data }: { data: ReceiptData }) {
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
     <div className={`flex justify-between ${bold ? "font-black" : ""}`}>
-      <span>{label}</span>
-      <span>{value}</span>
+      <span className="break-words">{label}</span>
+      <span className="font-bold">{value}</span>
     </div>
   );
 }
@@ -115,22 +114,125 @@ export function printReceipt() {
   if (typeof window === "undefined") return;
   const node = document.getElementById("receipt-print-area");
   if (!node) return;
-  const win = window.open("", "_blank", "width=420,height=640");
+  
+  // 80mm thermal printer dimensions: ~384px at 48dpi = ~280-300px in CSS
+  const win = window.open("", "_blank", "width=350,height=600");
   if (!win) return;
-  win.document.write(`<html><head><title>Receipt</title>
-    <style>
-      @page { margin: 4mm; }
-      body { font-family: ui-monospace, monospace; font-size: 12px; color:#000; }
-      .r { width: 100%; max-width: 300px; margin: 0 auto; }
-      .flex { display:flex; justify-content:space-between; }
-      .b { font-weight: 900; }
-      .c { text-align:center; }
-      .dash { border-top: 1px dashed #000; margin: 4px 0; }
-    </style></head><body>${node.outerHTML}</body></html>`);
+  
+  const html = node.outerHTML;
+  
+  win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Receipt</title>
+  <style>
+    @page {
+      margin: 0;
+      size: 80mm auto;
+    }
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+        background: white;
+      }
+      .no-print {
+        display: none;
+      }
+    }
+    body {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #000;
+      background: white;
+      margin: 0;
+      padding: 4mm;
+      width: 80mm;
+      box-sizing: border-box;
+    }
+    #receipt-print-area {
+      width: 100%;
+      font-weight: 600;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    p {
+      margin: 4px 0;
+      font-weight: 600;
+    }
+    .text-center {
+      text-align: center;
+    }
+    .text-lg {
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .font-black {
+      font-weight: 900;
+    }
+    .font-bold {
+      font-weight: 700;
+    }
+    .tracking-wider {
+      letter-spacing: 0.05em;
+    }
+    .tracking-\\[0.3em\\] {
+      letter-spacing: 0.3em;
+    }
+    .border-t {
+      border-top: 1px solid #000;
+    }
+    .border-dashed {
+      border-style: dashed;
+    }
+    .border-black {
+      border-color: #000;
+    }
+    .border-y-2 {
+      border-top: 2px solid #000;
+      border-bottom: 2px solid #000;
+    }
+    .my-1 {
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+    .py-1 {
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+    .mt-1 {
+      margin-top: 4px;
+    }
+    .mt-2 {
+      margin-top: 8px;
+    }
+    .mb-1 {
+      margin-bottom: 4px;
+    }
+    .flex {
+      display: flex;
+      justify-content: space-between;
+    }
+    .uppercase {
+      text-transform: uppercase;
+    }
+    .break-words {
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+    div {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>${html}</body>
+</html>`);
+  
   win.document.close();
   win.focus();
   setTimeout(() => {
     win.print();
-    win.close();
-  }, 250);
+  }, 300);
 }

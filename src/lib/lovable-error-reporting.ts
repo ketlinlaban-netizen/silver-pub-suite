@@ -24,6 +24,12 @@ declare global {
 }
 
 export function reportLovableError(error: unknown, context: Record<string, unknown> = {}) {
+  // Allow opt-out via build-time flag VITE_USE_LOVABLE (defaults to disabled)
+  // Set VITE_USE_LOVABLE=true to enable forwarding to lovable hooks.
+  // This is useful for static deployments where lovable editor hooks aren't present.
+  // eslint-disable-next-line no-undef
+  const enabled = typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_USE_LOVABLE === 'true';
+  if (!enabled) return;
   if (typeof window === "undefined") return;
   window.__lovableEvents?.captureException?.(
     error,

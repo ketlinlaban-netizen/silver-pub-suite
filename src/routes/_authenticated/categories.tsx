@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -17,8 +17,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { num } from "@/lib/format";
+import { requireAdmin } from "@/lib/auth-guards";
 
 export const Route = createFileRoute("/_authenticated/categories")({
+  beforeLoad: requireAdmin,
   head: () => ({
     meta: [
       { title: "Categories — Silver Pub POS" },

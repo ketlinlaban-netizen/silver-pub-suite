@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -91,9 +91,9 @@ function POSPage() {
     queryKey: ["pos-data"],
     queryFn: async () => {
       const [products, categories, tabs, settings] = await Promise.all([
-        supabase.from("products").select("*").eq("status", "active").order("name"),
+        supabase.from("products").select("id,name,image_url,barcode,sku,category_id,cost_price,selling_price,tax_rate,stock_quantity,is_favorite,status").eq("status", "active").order("name"),
         supabase.from("categories").select("id,name").order("sort_order"),
-        supabase.from("tabs").select("id,customer_name,balance,table_number").eq("status", "open"),
+        supabase.from("tabs").select("id,customer_name,balance,table_number,paid_amount,total_amount").eq("status", "open"),
         supabase.from("business_settings").select("*").limit(1).maybeSingle(),
       ]);
       return {
@@ -104,10 +104,14 @@ function POSPage() {
           customer_name: string;
           balance: number;
           table_number: string | null;
+          paid_amount: number;
+          total_amount: number;
         }[],
         settings: settings.data as ReceiptData["business"],
       };
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
   });
 
   const filtered = useMemo(() => {
@@ -171,6 +175,21 @@ function POSPage() {
     setLines([]);
     setExtraDiscount(0);
   };
+
+  // Handle Enter key to print receipt
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && receipt) {
+        e.preventDefault();
+        printReceipt();
+        // Close the receipt dialog after printing
+        setTimeout(() => setReceipt(null), 500);
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [receipt]);
 
   if (shiftLoading || isLoading) {
     return (
@@ -239,13 +258,13 @@ function POSPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6">
           {(category === "fav" ? filtered.filter((p) => p.is_favorite) : filtered).map((p) => (
             <motion.button
               key={p.id}
               whileTap={{ scale: 0.96 }}
               onClick={() => addProduct(p)}
-              className="glass-card lift group overflow-hidden p-0 text-left"
+              className="glass-card lift group overflow-hidden p-0 text-left transition-opacity duration-200 hover:opacity-80"
             >
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary/60">
                 {p.image_url ? (
@@ -253,27 +272,29 @@ function POSPage() {
                     src={p.image_url}
                     alt={p.name}
                     loading="lazy"
-                    className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    decoding="async"
+                    className="size-full object-cover"
+                    style={{ willChange: "transform" }}
                   />
                 ) : (
-                  <div className="grid size-full place-items-center font-display text-3xl text-muted-foreground/40">
+                  <div className="grid size-full place-items-center font-display text-xl text-muted-foreground/40">
                     {p.name.slice(0, 2).toUpperCase()}
                   </div>
                 )}
                 {p.is_favorite && (
-                  <Star className="absolute right-2 top-2 size-4 fill-primary text-primary" />
+                  <Star className="absolute right-1 top-1 size-3 fill-primary text-primary" />
                 )}
                 {p.stock_quantity <= 0 && (
-                  <span className="absolute inset-x-0 bottom-0 bg-destructive/80 py-1 text-center text-[10px] font-bold uppercase tracking-wider">
+                  <span className="absolute inset-x-0 bottom-0 bg-destructive/80 py-0.5 text-center text-[9px] font-bold uppercase tracking-wider">
                     Out of stock
                   </span>
                 )}
               </div>
-              <div className="p-3">
-                <p className="truncate text-sm font-semibold">{p.name}</p>
-                <div className="mt-1 flex items-center justify-between">
-                  <span className="text-sm font-bold text-primary">{money(p.selling_price)}</span>
-                  <span className="text-[11px] text-muted-foreground">
+              <div className="p-2">
+                <p className="truncate text-xs font-semibold">{p.name}</p>
+                <div className="mt-0.5 flex items-center justify-between">
+                  <span className="text-xs font-bold text-primary">{money(p.selling_price)}</span>
+                  <span className="text-[10px] text-muted-foreground">
                     {Number(p.stock_quantity)} left
                   </span>
                 </div>

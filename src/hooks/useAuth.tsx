@@ -53,37 +53,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles([]);
       return;
     }
-    const [{ data: p }, { data: r }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", uid),
-    ]);
-    setProfile((p as Profile) ?? null);
-    setRoles(((r ?? []) as { role: AppRole }[]).map((x) => x.role));
+    try {
+      const [{ data: p }, { data: r }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", uid),
+      ]);
+      setProfile((p as Profile) ?? null);
+      setRoles(((r ?? []) as { role: AppRole }[]).map((x) => x.role));
+    } catch (error) {
+      setProfile(null);
+      setRoles([]);
+    }
   };
 
   useEffect(() => {
     let active = true;
+    let timeoutId: NodeJS.Timeout;
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const initAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        
+        if (!active) return;
+        setSession(data.session);
+        if (data.session?.user.id) {
+          await load(data.session.user.id);
+        }
+        if (active) {
+          setLoading(false);
+        }
+      } catch (error) {
+        if (!active) return;
+        console.error("Auth init error:", error);
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, s) => {
       if (!active) return;
       setSession(s);
       if (!s) {
         setProfile(null);
         setRoles([]);
+        setLoading(false);
       } else {
-        setTimeout(() => void load(s.user.id), 0);
+        // Wait for profile/roles to load before completing state change
+        await load(s.user.id);
+        if (active) {
+          setLoading(false);
+        }
       }
     });
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!active) return;
-      setSession(data.session);
-      await load(data.session?.user.id);
-      setLoading(false);
-    });
+    void initAuth();
+
+    // Failsafe: if loading doesn't complete in 10 seconds, force it to false
+    timeoutId = setTimeout(() => {
+      if (active && loading) {
+        setLoading(false);
+      }
+    }, 10000);
 
     return () => {
       active = false;
+      clearTimeout(timeoutId);
       sub.subscription.unsubscribe();
     };
   }, []);
@@ -107,7 +142,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [loading, session, profile, roles],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

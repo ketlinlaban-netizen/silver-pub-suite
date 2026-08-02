@@ -1,9 +1,17 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   ssr: false,
+  beforeLoad: async () => {
+    // No loading page - redirect immediately to dashboard
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) {
+      throw redirect({ to: "/auth" });
+    }
+    // Everyone goes to dashboard (no role checking)
+    throw redirect({ to: "/dashboard" });
+  },
   head: () => ({
     meta: [
       { title: "Silver Pub POS — Enterprise Bar Management" },
@@ -20,32 +28,5 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-  component: Splash,
+  component: () => null,
 });
-
-function Splash() {
-  const { loading, session } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (loading) return;
-    void navigate({ to: session ? "/dashboard" : "/auth", replace: true });
-  }, [loading, session, navigate]);
-
-  return (
-    <div className="grid min-h-screen place-items-center px-6">
-      <div className="text-center">
-        <div className="mx-auto grid size-16 place-items-center rounded-3xl gold-surface font-display text-2xl font-bold">
-          SP
-        </div>
-        <h1 className="mt-6 font-display text-3xl font-semibold gold-text">SILVER PUB</h1>
-        <p className="mt-2 text-sm uppercase tracking-[0.3em] text-muted-foreground">
-          POS &amp; Bar Management
-        </p>
-        <div className="mx-auto mt-8 h-1 w-40 overflow-hidden rounded-full bg-secondary">
-          <div className="h-full w-1/2 animate-pulse rounded-full bg-primary" />
-        </div>
-      </div>
-    </div>
-  );
-}

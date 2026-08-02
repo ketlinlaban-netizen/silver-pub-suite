@@ -65,20 +65,26 @@ type ShiftRow = {
 };
 
 function ShiftsPage() {
-  const { user, profile, isManager } = useAuth();
+  const { user, profile, isManager, isAdmin } = useAuth();
   const qc = useQueryClient();
   const { data: active } = useActiveShift();
   const [openDialog, setOpenDialog] = useState(false);
   const [closeDialog, setCloseDialog] = useState(false);
 
-  const { data: shifts } = useQuery({
+  const { data: shifts, isLoading } = useQuery({
     queryKey: ["shifts"],
     queryFn: async () => {
-      const { data } = await supabase
+      let query = supabase
         .from("shifts")
         .select("*")
-        .order("opened_at", { ascending: false })
-        .limit(50);
+        .order("opened_at", { ascending: false });
+      
+      // Cashiers only see their own shifts
+      if (!isAdmin) {
+        query = query.eq("cashier_id", user?.id);
+      }
+      
+      const { data } = await query;
       return (data ?? []) as ShiftRow[];
     },
   });
@@ -117,6 +123,12 @@ function ShiftsPage() {
           <StatCard index={1} label="Opening cash" value={Number(active.opening_cash)} format={money} />
           <StatCard index={2} label="Opening M-Pesa float" value={Number(active.opening_mpesa)} format={money} tone="info" />
           <StatCard index={3} label="Cashier" value={0} format={() => active.cashier_name} tone="gold" />
+        </div>
+      )}
+
+      {!active && !isLoading && (
+        <div className="rounded-lg border border-border/50 bg-muted/30 p-4 text-center">
+          <p className="text-sm text-muted-foreground">No shift currently open. Click "Open shift" button above to begin trading.</p>
         </div>
       )}
 
@@ -199,7 +211,10 @@ function ShiftsPage() {
         onOpenChange={setOpenDialog}
         cashierId={user?.id ?? ""}
         cashierName={profile?.full_name || profile?.email || "Cashier"}
-        onDone={() => void qc.invalidateQueries()}
+        onDone={() => {
+          void qc.invalidateQueries({ queryKey: ["shifts"] });
+          void qc.invalidateQueries({ queryKey: ["active-shift"] });
+        }}
       />
       {active && (
         <CloseShiftDialog
@@ -208,7 +223,10 @@ function ShiftsPage() {
           shiftId={active.id}
           openingCash={Number(active.opening_cash)}
           openingMpesa={Number(active.opening_mpesa)}
-          onDone={() => void qc.invalidateQueries()}
+          onDone={() => {
+            void qc.invalidateQueries({ queryKey: ["shifts"] });
+            void qc.invalidateQueries({ queryKey: ["active-shift"] });
+          }}
         />
       )}
     </div>

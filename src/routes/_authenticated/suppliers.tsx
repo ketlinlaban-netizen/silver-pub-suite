@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { requireAdmin } from "@/lib/auth-guards";
 import { PageHeader, GlassPanel, EmptyState, StatCard } from "@/components/ui/premium";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ import {
 import { money, num } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/suppliers")({
+  beforeLoad: requireAdmin,
   head: () => ({
     meta: [
       { title: "Suppliers — Silver Pub POS" },
