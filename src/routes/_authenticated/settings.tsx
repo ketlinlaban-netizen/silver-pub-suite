@@ -90,6 +90,7 @@ function SettingsPage() {
   };
 
   const savePin = async () => {
+    if (!user) return toast.error("You must be signed in");
     if (!pinForm.new.trim()) return toast.error("Enter new PIN");
     if (pinForm.new.length !== 4 || !/^\d+$/.test(pinForm.new))
       return toast.error("PIN must be exactly 4 digits");
@@ -101,7 +102,7 @@ function SettingsPage() {
         .from("admin_pins")
         .upsert(
           {
-            user_id: user?.id,
+            user_id: user.id,
             pin: pinForm.new,
             updated_at: new Date().toISOString(),
           },

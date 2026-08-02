@@ -81,7 +81,7 @@ function ShiftsPage() {
       
       // Cashiers only see their own shifts
       if (!isAdmin) {
-        query = query.eq("cashier_id", user?.id);
+        query = query.eq("cashier_id", user?.id ?? "");
       }
       
       const { data } = await query;
