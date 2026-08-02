@@ -18,7 +18,6 @@ import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDispensingRouteImport } from './routes/_authenticated/dispensing'
-import { Route as AuthenticatedDispensingOldRouteImport } from './routes/_authenticated/dispensing-old'
 import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticated/expenses'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
@@ -28,7 +27,6 @@ import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedShiftsRouteImport } from './routes/_authenticated/shifts'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
-import { Route as AuthenticatedStaffOldRouteImport } from './routes/_authenticated/staff-old'
 import { Route as AuthenticatedSuppliersRouteImport } from './routes/_authenticated/suppliers'
 import { Route as AuthenticatedTabsRouteImport } from './routes/_authenticated/tabs'
 
@@ -76,12 +74,6 @@ const AuthenticatedDispensingRoute = AuthenticatedDispensingRouteImport.update({
   path: '/dispensing',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDispensingOldRoute =
-  AuthenticatedDispensingOldRouteImport.update({
-    id: '/dispensing-old',
-    path: '/dispensing-old',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedExpensesRoute = AuthenticatedExpensesRouteImport.update({
   id: '/expenses',
   path: '/expenses',
@@ -127,11 +119,6 @@ const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedStaffOldRoute = AuthenticatedStaffOldRouteImport.update({
-  id: '/staff-old',
-  path: '/staff-old',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedSuppliersRoute = AuthenticatedSuppliersRouteImport.update({
   id: '/suppliers',
   path: '/suppliers',
@@ -152,7 +139,6 @@ export interface FileRoutesByFullPath {
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dispensing': typeof AuthenticatedDispensingRoute
-  '/dispensing-old': typeof AuthenticatedDispensingOldRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/pos': typeof AuthenticatedPosRoute
@@ -162,7 +148,6 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/shifts': typeof AuthenticatedShiftsRoute
   '/staff': typeof AuthenticatedStaffRoute
-  '/staff-old': typeof AuthenticatedStaffOldRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/tabs': typeof AuthenticatedTabsRoute
 }
@@ -175,7 +160,6 @@ export interface FileRoutesByTo {
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dispensing': typeof AuthenticatedDispensingRoute
-  '/dispensing-old': typeof AuthenticatedDispensingOldRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/pos': typeof AuthenticatedPosRoute
@@ -185,7 +169,6 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/shifts': typeof AuthenticatedShiftsRoute
   '/staff': typeof AuthenticatedStaffRoute
-  '/staff-old': typeof AuthenticatedStaffOldRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/tabs': typeof AuthenticatedTabsRoute
 }
@@ -200,7 +183,6 @@ export interface FileRoutesById {
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dispensing': typeof AuthenticatedDispensingRoute
-  '/_authenticated/dispensing-old': typeof AuthenticatedDispensingOldRoute
   '/_authenticated/expenses': typeof AuthenticatedExpensesRoute
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/pos': typeof AuthenticatedPosRoute
@@ -210,7 +192,6 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/shifts': typeof AuthenticatedShiftsRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
-  '/_authenticated/staff-old': typeof AuthenticatedStaffOldRoute
   '/_authenticated/suppliers': typeof AuthenticatedSuppliersRoute
   '/_authenticated/tabs': typeof AuthenticatedTabsRoute
 }
@@ -225,7 +206,6 @@ export interface FileRouteTypes {
     | '/customers'
     | '/dashboard'
     | '/dispensing'
-    | '/dispensing-old'
     | '/expenses'
     | '/inventory'
     | '/pos'
@@ -235,7 +215,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shifts'
     | '/staff'
-    | '/staff-old'
     | '/suppliers'
     | '/tabs'
   fileRoutesByTo: FileRoutesByTo
@@ -248,7 +227,6 @@ export interface FileRouteTypes {
     | '/customers'
     | '/dashboard'
     | '/dispensing'
-    | '/dispensing-old'
     | '/expenses'
     | '/inventory'
     | '/pos'
@@ -258,7 +236,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shifts'
     | '/staff'
-    | '/staff-old'
     | '/suppliers'
     | '/tabs'
   id:
@@ -272,7 +249,6 @@ export interface FileRouteTypes {
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
     | '/_authenticated/dispensing'
-    | '/_authenticated/dispensing-old'
     | '/_authenticated/expenses'
     | '/_authenticated/inventory'
     | '/_authenticated/pos'
@@ -282,7 +258,6 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/shifts'
     | '/_authenticated/staff'
-    | '/_authenticated/staff-old'
     | '/_authenticated/suppliers'
     | '/_authenticated/tabs'
   fileRoutesById: FileRoutesById
@@ -358,13 +333,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDispensingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/dispensing-old': {
-      id: '/_authenticated/dispensing-old'
-      path: '/dispensing-old'
-      fullPath: '/dispensing-old'
-      preLoaderRoute: typeof AuthenticatedDispensingOldRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/expenses': {
       id: '/_authenticated/expenses'
       path: '/expenses'
@@ -428,13 +396,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaffRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/staff-old': {
-      id: '/_authenticated/staff-old'
-      path: '/staff-old'
-      fullPath: '/staff-old'
-      preLoaderRoute: typeof AuthenticatedStaffOldRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/suppliers': {
       id: '/_authenticated/suppliers'
       path: '/suppliers'
@@ -459,7 +420,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDispensingRoute: typeof AuthenticatedDispensingRoute
-  AuthenticatedDispensingOldRoute: typeof AuthenticatedDispensingOldRoute
   AuthenticatedExpensesRoute: typeof AuthenticatedExpensesRoute
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
@@ -469,7 +429,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShiftsRoute: typeof AuthenticatedShiftsRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
-  AuthenticatedStaffOldRoute: typeof AuthenticatedStaffOldRoute
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
   AuthenticatedTabsRoute: typeof AuthenticatedTabsRoute
 }
@@ -481,7 +440,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDispensingRoute: AuthenticatedDispensingRoute,
-  AuthenticatedDispensingOldRoute: AuthenticatedDispensingOldRoute,
   AuthenticatedExpensesRoute: AuthenticatedExpensesRoute,
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedPosRoute: AuthenticatedPosRoute,
@@ -491,7 +449,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShiftsRoute: AuthenticatedShiftsRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
-  AuthenticatedStaffOldRoute: AuthenticatedStaffOldRoute,
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
   AuthenticatedTabsRoute: AuthenticatedTabsRoute,
 }
