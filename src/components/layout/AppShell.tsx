@@ -293,24 +293,36 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="border-t border-sidebar-border p-4">
-          <button 
-            onClick={() => navigate({ to: "/account" })}
-            className="w-full flex items-center gap-3 rounded-xl bg-sidebar-accent/50 p-3 transition-all hover:bg-sidebar-accent"
-          >
-            <div className="grid size-10 shrink-0 place-items-center rounded-full border border-primary/40 text-sm font-semibold text-primary">
-              {initials}
-            </div>
-            <div className="min-w-0 flex-1 text-left">
-              <p className="truncate text-sm font-semibold capitalize">{staffName}</p>
-              <p className="truncate text-xs capitalize text-muted-foreground">
-                {roles[0]?.replace("_", " ") || "staff"}
-              </p>
-            </div>
-            <Button variant="ghost" size="icon" onClick={async (e) => { e.stopPropagation(); await signOut(); await navigate({ to: "/auth" }); }} aria-label="Sign out">
+          <div className="flex w-full items-center gap-3 rounded-xl bg-sidebar-accent/50 p-3 transition-all hover:bg-sidebar-accent">
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/account" })}
+              className="flex min-w-0 flex-1 items-center gap-3 text-left"
+            >
+              <div className="grid size-10 shrink-0 place-items-center rounded-full border border-primary/40 text-sm font-semibold text-primary">
+                {initials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold capitalize">{staffName}</p>
+                <p className="truncate text-xs capitalize text-muted-foreground">
+                  {roles[0]?.replace("_", " ") || "staff"}
+                </p>
+              </div>
+            </button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={async () => {
+                await signOut();
+                await navigate({ to: "/auth" });
+              }}
+              aria-label="Sign out"
+            >
               <LogOut className="size-4" />
             </Button>
-          </button>
+          </div>
         </div>
+
       </aside>
 
       {open && (

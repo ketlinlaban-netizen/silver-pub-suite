@@ -19,6 +19,7 @@ import {
   Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveShift } from "@/hooks/useShift";
 import { Button } from "@/components/ui/button";
@@ -87,14 +88,15 @@ function POSPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
 
+  const { settings, receiptWidth } = useBusinessSettings();
+
   const { data, isLoading } = useQuery({
     queryKey: ["pos-data"],
     queryFn: async () => {
-      const [products, categories, tabs, settings] = await Promise.all([
+      const [products, categories, tabs] = await Promise.all([
         supabase.from("products").select("id,name,image_url,barcode,sku,category_id,cost_price,selling_price,tax_rate,stock_quantity,is_favorite,status").eq("status", "active").order("name"),
         supabase.from("categories").select("id,name").order("sort_order"),
         supabase.from("tabs").select("id,customer_name,balance,table_number,paid_amount,total_amount").eq("status", "open"),
-        supabase.from("business_settings").select("*").limit(1).maybeSingle(),
       ]);
       return {
         products: (products.data ?? []) as Product[],
@@ -107,7 +109,6 @@ function POSPage() {
           paid_amount: number;
           total_amount: number;
         }[],
-        settings: settings.data as ReceiptData["business"],
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -181,7 +182,7 @@ function POSPage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter" && receipt) {
         e.preventDefault();
-        printReceipt();
+        printReceipt(receiptWidth);
         // Close the receipt dialog after printing
         setTimeout(() => setReceipt(null), 500);
       }
@@ -390,7 +391,7 @@ function POSPage() {
         totals={totals}
         lines={lines}
         tabs={data?.tabs ?? []}
-        settings={data?.settings ?? null}
+        settings={settings}
         cashierId={user?.id ?? ""}
         cashierName={profile?.full_name ?? profile?.email ?? "Cashier"}
         shiftId={shift.id}
@@ -413,7 +414,7 @@ function POSPage() {
             <Button variant="outline" onClick={() => setReceipt(null)}>
               Close
             </Button>
-            <Button onClick={printReceipt}>
+            <Button onClick={() => printReceipt(receiptWidth)}>
               <Printer className="mr-2 size-4" /> Print
             </Button>
           </DialogFooter>

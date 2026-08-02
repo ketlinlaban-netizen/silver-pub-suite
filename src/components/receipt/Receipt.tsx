@@ -110,7 +110,8 @@ function Divider() {
   return <div className="my-1 border-t border-dashed border-black" />;
 }
 
-export function printReceipt() {
+export function printReceipt(receiptWidth: string = "80mm") {
+  const width = receiptWidth === "58mm" ? "58mm" : "80mm";
   if (typeof window === "undefined") return;
   const node = document.getElementById("receipt-print-area");
   if (!node) return;
@@ -129,7 +130,7 @@ export function printReceipt() {
   <style>
     @page {
       margin: 0;
-      size: 80mm auto;
+      size: ${width} auto;
     }
     @media print {
       body {
@@ -148,7 +149,7 @@ export function printReceipt() {
       background: white;
       margin: 0;
       padding: 4mm;
-      width: 80mm;
+      width: ${width};
       box-sizing: border-box;
     }
     #receipt-print-area {

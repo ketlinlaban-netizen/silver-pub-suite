@@ -140,7 +140,7 @@ function StaffPage() {
         full_name: createForm.full_name.trim(),
         phone: createForm.phone.trim(),
         email: email,
-        status: createForm.status,
+        status: createForm.status as "active" | "suspended" | "terminated",
       });
 
       if (profileError) {

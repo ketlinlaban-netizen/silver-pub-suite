@@ -33,10 +33,14 @@ export function GlassPanel({
 }
 
 function useCountUp(value: number, duration = 900) {
-  const [display, setDisplay] = useState(0);
-  const from = useRef(0);
+  const [display, setDisplay] = useState(value);
+  const from = useRef(value);
 
   useEffect(() => {
+    if (from.current === value) {
+      setDisplay(value);
+      return;
+    }
     const start = performance.now();
     const initial = from.current;
     let frame = 0;
@@ -44,8 +48,12 @@ function useCountUp(value: number, duration = 900) {
       const p = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - p, 3);
       setDisplay(initial + (value - initial) * eased);
-      if (p < 1) frame = requestAnimationFrame(tick);
-      else from.current = value;
+      if (p < 1) {
+        frame = requestAnimationFrame(tick);
+      } else {
+        from.current = value;
+        setDisplay(value);
+      }
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);

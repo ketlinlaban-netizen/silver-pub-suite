@@ -173,8 +173,10 @@ export type Database = {
           id: string
           is_closed: boolean
           opening_quantity: number
+          opening_revenue: number
           opening_value: number
           outstanding: number
+          price_per_unit_snapshot: number
           returned_quantity: number
           shift_id: string | null
           unit_id: string
@@ -188,8 +190,10 @@ export type Database = {
           id?: string
           is_closed?: boolean
           opening_quantity?: number
+          opening_revenue?: number
           opening_value?: number
           outstanding?: number
+          price_per_unit_snapshot?: number
           returned_quantity?: number
           shift_id?: string | null
           unit_id: string
@@ -203,8 +207,10 @@ export type Database = {
           id?: string
           is_closed?: boolean
           opening_quantity?: number
+          opening_revenue?: number
           opening_value?: number
           outstanding?: number
+          price_per_unit_snapshot?: number
           returned_quantity?: number
           shift_id?: string | null
           unit_id?: string
@@ -233,6 +239,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          price_per_unit: number
           product_id: string | null
         }
         Insert: {
@@ -240,6 +247,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          price_per_unit?: number
           product_id?: string | null
         }
         Update: {
@@ -247,6 +255,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          price_per_unit?: number
           product_id?: string | null
         }
         Relationships: [

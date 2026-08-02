@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Printer, Wallet, ReceiptText, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveShift } from "@/hooks/useShift";
 import { PageHeader, GlassPanel, StatCard, EmptyState } from "@/components/ui/premium";
@@ -68,18 +69,18 @@ function TabsPage() {
   const [payOpen, setPayOpen] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
 
+  const { settings, receiptWidth } = useBusinessSettings();
+
   const { data } = useQuery({
     queryKey: ["tabs", status],
     refetchInterval: 20_000,
     queryFn: async () => {
-      const [tabs, settings] = await Promise.all([
-        supabase.from("tabs").select("*").eq("status", status).order("created_at", { ascending: false }),
-        supabase.from("business_settings").select("*").limit(1).maybeSingle(),
-      ]);
-      return {
-        tabs: (tabs.data ?? []) as TabRow[],
-        settings: settings.data as ReceiptData["business"],
-      };
+      const tabs = await supabase
+        .from("tabs")
+        .select("*")
+        .eq("status", status)
+        .order("created_at", { ascending: false });
+      return { tabs: (tabs.data ?? []) as TabRow[] };
     },
   });
 
@@ -101,7 +102,7 @@ function TabsPage() {
 
     setSelected(tab);
     setReceipt({
-      business: data?.settings ?? null,
+      business: settings,
       receiptNumber: `TAB-${tab.id.slice(0, 8).toUpperCase()}`,
       date: new Date().toISOString(),
       cashier: profile?.full_name || "Cashier",
@@ -240,7 +241,7 @@ function TabsPage() {
             <Button variant="outline" onClick={() => setReceipt(null)}>
               Close
             </Button>
-            <Button onClick={printReceipt}>
+            <Button onClick={() => printReceipt(receiptWidth)}>
               <Printer className="mr-2 size-4" /> Print
             </Button>
           </DialogFooter>
