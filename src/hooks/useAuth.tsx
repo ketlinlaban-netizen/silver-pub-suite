@@ -68,57 +68,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    let timeoutId: NodeJS.Timeout;
 
-    const initAuth = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        
-        if (!active) return;
-        setSession(data.session);
-        if (data.session?.user.id) {
-          await load(data.session.user.id);
-        }
-        if (active) {
-          setLoading(false);
-        }
-      } catch (error) {
-        if (!active) return;
-        console.error("Auth init error:", error);
-        if (active) {
-          setLoading(false);
-        }
-      }
-    };
-
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, s) => {
+    // Auth state listener first — never awaits network work inside the callback.
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       if (!active) return;
       setSession(s);
+      setLoading(false);
       if (!s) {
         setProfile(null);
         setRoles([]);
-        setLoading(false);
       } else {
-        // Wait for profile/roles to load before completing state change
-        await load(s.user.id);
-        if (active) {
-          setLoading(false);
-        }
+        // Profile/roles hydrate in the background; the UI never blocks on them.
+        setTimeout(() => {
+          if (active) void load(s.user.id);
+        }, 0);
       }
     });
 
-    void initAuth();
-
-    // Failsafe: if loading doesn't complete in 10 seconds, force it to false
-    timeoutId = setTimeout(() => {
-      if (active && loading) {
+    void (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!active) return;
+        setSession(data.session);
         setLoading(false);
+        if (data.session?.user.id) void load(data.session.user.id);
+      } catch {
+        if (active) setLoading(false);
       }
-    }, 10000);
+    })();
 
     return () => {
       active = false;
-      clearTimeout(timeoutId);
       sub.subscription.unsubscribe();
     };
   }, []);
