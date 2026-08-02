@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { money, num, dateTime } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/dispensing")({
+export const Route = createFileRoute("/_authenticated/dispensing-old")({
   head: () => ({
     meta: [
       { title: "Dispensing — Silver Pub POS" },

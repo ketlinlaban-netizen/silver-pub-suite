@@ -9,7 +9,7 @@ import { PageHeader, GlassPanel, EmptyState, StatCard } from "@/components/ui/pr
 import { Button } from "@/components/ui/button";
 import { num, dateTime, displayName, ROLE_LABELS } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/staff")({
+export const Route = createFileRoute("/_authenticated/staff-old")({
   beforeLoad: requireAdmin,
   head: () => ({
     meta: [
