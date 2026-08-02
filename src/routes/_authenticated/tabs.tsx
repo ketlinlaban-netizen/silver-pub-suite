@@ -69,18 +69,18 @@ function TabsPage() {
   const [payOpen, setPayOpen] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
 
+  const { settings, receiptWidth } = useBusinessSettings();
+
   const { data } = useQuery({
     queryKey: ["tabs", status],
     refetchInterval: 20_000,
     queryFn: async () => {
-      const [tabs, settings] = await Promise.all([
-        supabase.from("tabs").select("*").eq("status", status).order("created_at", { ascending: false }),
-        supabase.from("business_settings").select("*").limit(1).maybeSingle(),
-      ]);
-      return {
-        tabs: (tabs.data ?? []) as TabRow[],
-        settings: settings.data as ReceiptData["business"],
-      };
+      const tabs = await supabase
+        .from("tabs")
+        .select("*")
+        .eq("status", status)
+        .order("created_at", { ascending: false });
+      return { tabs: (tabs.data ?? []) as TabRow[] };
     },
   });
 

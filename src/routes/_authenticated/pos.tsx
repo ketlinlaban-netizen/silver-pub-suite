@@ -88,14 +88,15 @@ function POSPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
 
+  const { settings, receiptWidth } = useBusinessSettings();
+
   const { data, isLoading } = useQuery({
     queryKey: ["pos-data"],
     queryFn: async () => {
-      const [products, categories, tabs, settings] = await Promise.all([
+      const [products, categories, tabs] = await Promise.all([
         supabase.from("products").select("id,name,image_url,barcode,sku,category_id,cost_price,selling_price,tax_rate,stock_quantity,is_favorite,status").eq("status", "active").order("name"),
         supabase.from("categories").select("id,name").order("sort_order"),
         supabase.from("tabs").select("id,customer_name,balance,table_number,paid_amount,total_amount").eq("status", "open"),
-        supabase.from("business_settings").select("*").limit(1).maybeSingle(),
       ]);
       return {
         products: (products.data ?? []) as Product[],
@@ -108,7 +109,6 @@ function POSPage() {
           paid_amount: number;
           total_amount: number;
         }[],
-        settings: settings.data as ReceiptData["business"],
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
