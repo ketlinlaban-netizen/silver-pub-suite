@@ -21,20 +21,10 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { money } from "@/lib/format";
 import { logAudit, applyStockMovement } from "@/lib/pos";
+import { requireAdmin } from "@/lib/auth-guards";
 
 export const Route = createFileRoute("/_authenticated/products")({
-  beforeLoad: async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/auth" });
-    
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", data.user.id);
-    
-    const isAdmin = roles?.some((r) => ["administrator", "owner"].includes(r.role));
-    if (!isAdmin) throw redirect({ to: "/dashboard" });
-  },
+  beforeLoad: requireAdmin,
   head: () => ({
     meta: [
       { title: "Products & Stock — Silver Pub POS" },

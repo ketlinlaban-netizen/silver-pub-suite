@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Printer, Wallet, ReceiptText, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveShift } from "@/hooks/useShift";
 import { PageHeader, GlassPanel, StatCard, EmptyState } from "@/components/ui/premium";
@@ -101,7 +102,7 @@ function TabsPage() {
 
     setSelected(tab);
     setReceipt({
-      business: data?.settings ?? null,
+      business: settings,
       receiptNumber: `TAB-${tab.id.slice(0, 8).toUpperCase()}`,
       date: new Date().toISOString(),
       cashier: profile?.full_name || "Cashier",
@@ -240,7 +241,7 @@ function TabsPage() {
             <Button variant="outline" onClick={() => setReceipt(null)}>
               Close
             </Button>
-            <Button onClick={printReceipt}>
+            <Button onClick={() => printReceipt(receiptWidth)}>
               <Printer className="mr-2 size-4" /> Print
             </Button>
           </DialogFooter>
