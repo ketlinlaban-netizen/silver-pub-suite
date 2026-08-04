@@ -176,6 +176,8 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: true },
       { to: "/pos", label: "Cashier POS", icon: ShoppingCart },
       { to: "/tabs", label: "Running Bills", icon: ReceiptText },
+      { to: "/sales", label: "Sales Ledger", icon: ReceiptText, adminOnly: true },
+
       { to: "/customers", label: "Customers", icon: Users },
       { to: "/shifts", label: "Shifts", icon: Clock3 },
       { to: "/dispensing", label: "Dispensing", icon: Beer },
