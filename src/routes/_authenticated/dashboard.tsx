@@ -65,6 +65,17 @@ type SaleRow = {
   created_at: string;
 };
 
+type DashboardData = {
+  sales: SaleRow[];
+  items: { product_name: string; quantity: number; line_total: number; created_at: string }[];
+  products: { id: string; name: string; stock_quantity: number; cost_price: number; min_stock: number }[];
+  expenses: { amount: number; created_at: string }[];
+  openTabs: { id: string; balance: number }[];
+  purchases: { total: number; created_at: string }[];
+};
+
+
+
 function Dashboard() {
   const { sessionExpired, authError } = useAuth();
   const [lastData, setLastData] = useState<DashboardData | null>(null);
