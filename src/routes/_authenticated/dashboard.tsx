@@ -80,7 +80,7 @@ function Dashboard() {
   const { sessionExpired, authError } = useAuth();
   const [lastData, setLastData] = useState<DashboardData | null>(null);
 
-  const { data, isLoading, isError } = useQuery<DashboardData>({
+  const { data: queryData, isLoading, isError } = useQuery<DashboardData>({
     queryKey: ["dashboard"],
     refetchInterval: 60_000,
     staleTime: 30_000,
@@ -129,12 +129,12 @@ function Dashboard() {
   });
 
   useEffect(() => {
-    if (data) {
-      setLastData(data);
+    if (queryData) {
+      setLastData(queryData);
     }
-  }, [data]);
+  }, [queryData]);
 
-  const displayData = useMemo(() => data ?? lastData, [data, lastData]);
+  const displayData = useMemo(() => queryData ?? lastData, [queryData, lastData]);
 
   if (sessionExpired) {
     return (
@@ -179,6 +179,8 @@ function Dashboard() {
       </div>
     );
   }
+
+  const data = displayData as DashboardData;
 
   const today = startOfToday().getTime();
   const week = daysAgo(6).getTime();
